@@ -16,7 +16,7 @@ class Products
 	public function __destruct()
 	{
 		if ($this->dbh_internal) {
-			mysql_close($this->dbh_internal);
+			mysqli_close($this->dbh_internal);
 		}
 	}
 
@@ -29,9 +29,9 @@ class Products
 	{
 		$dbh = $this->getDbh();
 		$sql = 'SELECT * FROM `products` ORDER BY `title` LIMIT ' . $this->productsPerPage . ' OFFSET ' . $offset;
-		$stmt = mysql_query($sql);
+		$stmt = mysqli_query($sql);
 		$content = array();
-		while ($row = mysql_fetch_assoc($stmt)) {
+		while ($row = mysqli_fetch_assoc($stmt)) {
 			$content[] = $row;
 		}
 		return $content;
@@ -44,9 +44,9 @@ class Products
 	{
 		$dbh = $this->getDbh();
 		$sql = 'SELECT * FROM `products`';
-		$stmt = mysql_query($sql);
+		$stmt = mysqli_query($sql);
 		$content = array();
-		while ($row = mysql_fetch_assoc($stmt)) {
+		while ($row = mysqli_fetch_assoc($stmt)) {
 			$content[] = $row;
 		}
 		return $content;
@@ -59,9 +59,9 @@ class Products
 	{
 		$dbh = $this->getDbh();
 		$sql = 'SELECT `product_id`, `title` FROM `products`';
-		$stmt = mysql_query($sql);
+		$stmt = mysqli_query($this->dbh_internal,$sql);
 		$content = array();
-		while ($row = mysql_fetch_assoc($stmt)) {
+		while ($row = mysqli_fetch_assoc($stmt)) {
 			$content[$row['product_id']] = $row['title'];
 		}
 		asort($content, SORT_STRING);
@@ -77,8 +77,8 @@ class Products
 		$dbh = $this->getDbh();
 		// *** should use a prepared statement
 		$sql = 'SELECT * FROM `products` WHERE `product_id` = ' . $id;
-		$stmt = mysql_query($sql);
-		$result = mysql_fetch_assoc($stmt);
+		$stmt = mysqli_query($this->dbh_internal,$sql);
+		$result = mysqli_fetch_assoc($stmt);
 		return $result;
 	}
 	/**
@@ -90,9 +90,9 @@ class Products
 		if (!$this->howManyProducts) {
 			$dbh = $this->getDbh();
 			$sql = 'SELECT COUNT(*) FROM `products`';
-			$stmt = mysql_query($sql);
+			$stmt = mysqli_query($this->dbh_internal,$sql);
 			// fetches as a numeric array
-			$result = mysql_fetch_row($stmt);
+			$result = mysqli_fetch_row($stmt);
 			$this->howManyProducts = $result[0];
 		}
 		return $this->howManyProducts;
@@ -110,9 +110,9 @@ class Products
 		if ($limit) {
 			$sql .= ' LIMIT ' . $limit;
 		}
-		$stmt = mysql_query($sql);
+		$stmt = mysqli_query($this->dbh_internal,$sql);
 		$content = array();
-		while ($row = mysql_fetch_assoc($stmt)) {
+		while ($row = mysqli_fetch_assoc($stmt)) {
 			$content[] = $row;
 		}
 		return $content;
@@ -132,9 +132,9 @@ class Products
 		$sql = 'SELECT * FROM `products` WHERE '
 			  . '`title` LIKE ' . $search . ' OR '
 			  . '`description` LIKE ' . $search . ' ORDER BY `title`';
-		$stmt = mysql_query($sql);
+		$stmt = mysqli_query($sql);
 		$content = array();
-		while ($row = mysql_fetch_assoc($stmt)) {
+		while ($row = mysqli_fetch_assoc($stmt)) {
 			$content[] = $row;
 		}
 		return $content;
@@ -211,7 +211,7 @@ class Products
 	 */
 	public function quoteValue($value)
 	{
-		return mysql_real_escape_string($value);
+		return mysqli_real_escape_string($value);
 	}
 
 	/**
@@ -223,12 +223,12 @@ class Products
 	{
 		if (!$this->dbh_internal) {
 			// *** warnings should be suppressed in production
-			$this->dbh_internal = mysql_connect(DB_HOST, DB_USER, DB_PWD);
+			$this->dbh_internal = mysqli_connect(DB_HOST, DB_USER, DB_PWD);
 			if (!$this->dbh_internal) {
-				throw new Exception(mysql_error());
+				throw new Exception(mysqli_error());
 			}
 		}
-		mysql_select_db(DB_NAME,$this->dbh_internal);
+		mysqli_select_db($this->dbh_internal,DB_NAME);
 		return $this->dbh_internal;
 	}
 
